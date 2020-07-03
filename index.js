@@ -2,8 +2,12 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const fs = require('fs');
 // let pagination = 1;
-
 const url = 'http://rostender.info/tender?p=';
+const MongoClient = require("mongodb").MongoClient;
+ 
+
+
+
 
 async function f(){
     let promise = new Promise(function(resolve, reject) {
@@ -20,17 +24,34 @@ async function f(){
 
     // let result = await promise; 
 
-    f2(await promise)
+    f2(await promise);
 }
 
 function f2(p){
-        console.log("f2 "+ p);
+    console.log("f2 "+ p);
+    const mongoClient = new MongoClient("mongodb://localhost:27017/", { useNewUrlParser: true });
+    mongoClient.connect(function(err, client){
+    
+        if(err){
+            return console.log(err);
+        }
+        // взаимодействие с базой данных
+        const db = client.db('Tenders');
+        const collection = db.collection("tenderInfo");
+
+
+        // collection.insertOne(data, function(err, result){
+        //     if(err){ 
+        //         return console.log(err);
+        //     }
+        // });
+        
         for( page = 1; page < p; page++){
         // console.log(page);
         axios.get(url + page)
             .then(response => {
                 let getData = html => {
-                    data = [];
+                    
                     const $ = cheerio.load(html);
                     $('.tender-row').each((i, header) => {
                         
@@ -48,7 +69,7 @@ function f2(p){
                             );
                         }
 
-                        data.push({
+                        data = {
                             id: i,
                             name,
                             price,
@@ -57,10 +78,15 @@ function f2(p){
                             dateEnd,
                             link : "http://rostender.info"+ link,
                             typeOfTender
+                        };
+
+                        collection.insertOne(data, function(err, result){
+                            if(err){ 
+                                return console.log(err);
+                            }
                         });
                     });
-                    
-                    console.log(data);
+                    // console.log(data);
                 };
                 getData(response.data);
             })
@@ -68,6 +94,9 @@ function f2(p){
                 console.log(error);
             });
         }
+    
+        client.close();
+    });
 }
 
 f();
