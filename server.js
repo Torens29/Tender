@@ -61,7 +61,6 @@ mongoClient.connect(function(err, client){
                                                         arr[i] = parseFloat(element);
                                                        
                                                     });
-                                                     console.log(coords)
                                                     return coords;
                                                 })
                                                 .then(coords =>{
