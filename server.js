@@ -57,6 +57,14 @@ mongoClient.connect(function(err, client){
                                 
                                 searchCoords(address)
                                                 .then(coords => {
+                                                    coords.forEach((element , i, arr)=> {
+                                                        arr[i] = parseFloat(element);
+                                                       
+                                                    });
+                                                     console.log(coords)
+                                                    return coords;
+                                                })
+                                                .then(coords =>{
                                                     console.log(i, coords)
                                                     typeOfTender=[];
                                                     for(j=0;j< $(header).find('.tender-costomer-branch a').length;j++){
