@@ -41,7 +41,7 @@ mongoClient.connect(function(err, client){
     async function f2(p){ 
         console.log("f2 "+ p);
             // let coords = await searchCoords(address);
-            for( page = 8; page < 9; page++){
+            for( page = 1; page < 2; page++){
                 console.log(page);
                 await axios.get(url + page)
                     .then(response => {  
@@ -50,74 +50,79 @@ mongoClient.connect(function(err, client){
                             const $ = cheerio.load(html);
                             $('.tender-row').each((i, header) => {
                                 
-                                const name = $(header).find("a.description").attr('title');
-                                const price =  $(header).find(".starting-price").text().trim();
-                                const address = $(header).find('div.tender-address div').text().trim();
-                                
                                 let dateEndWithText = ($(header).find('.tender-date-end').text().trim()).split(' ');
                                 const date= [($(header).find('span.tender-date-info').text().trim()).split('.'), dateEndWithText[2].split('.')];
 
-                                const dateStart = new Date(date[0][2],date[0][1],date[0][0]);
+                                
                                 const dateEnd = new Date(date[1][2],date[1][1],date[1][0]);
+                                d = new Date()
+
+                                console.log(d,' < ',dateEnd, d < dateEnd);
                                 
-                                const link = $(header).find("a.description").attr('href');
+                                if(d < dateEnd){
 
-                                searchCoords(address)
-                                                .then(obj => {
-                                                     obj.arrGeoObj=[];
-                                                    // console.log(obj.coords)
-                                                    obj.coords.forEach((element , i, arr)=> {
-                                                        element.forEach((el,index,a) => {
-                                                            a[index] = parseFloat(el);
-                                                        });
-                                                        obj.arrGeoObj.push(element);
-                                                    });
-                                                    return obj;
-                                                })
-                                                .then(obj =>{
-                                                    typeOfTender=[];
-                                                    for(j=0;j< $(header).find('.tender-costomer-branch a').length;j++){
-                                                        typeOfTender.push(
-                                                            $(header).find('.tender-costomer-branch a')[j].attribs.title
-                                                        );
-                                                    }
+                                        const dateStart = new Date(date[0][2],date[0][1],date[0][0]);
+                                        const name = $(header).find("a.description").attr('title');
+                                        const price =  $(header).find(".starting-price").text().trim();
+                                        const address = $(header).find('div.tender-address div').text().trim();
+                                    
+                                        const link = $(header).find("a.description").attr('href');
 
-                                                    obj.arrGeoObj.forEach((el,index,arr) =>{
-
-                                                        data = {
-                                                            id: id,
-                                                            name,
-                                                            price,
-                                                            coords: {
-                                                                type: "Point",
-                                                                coordinates: el
-                                                            },
-                                                            address: obj.addressArr[index],
-                                                            dateStart,
-                                                            dateEnd,
-                                                            link : "http://rostender.info"+ link,
-                                                            typeOfTender
-                                                        };
-
-                                                        collection.insertOne(data, function(err){
-                                                            if(err){ 
-                                                                return console.log(err);
+                                        searchCoords(address)
+                                                        .then(obj => {
+                                                            obj.arrGeoObj=[];
+                                                            // console.log(obj.coords)
+                                                            obj.coords.forEach((element , i, arr)=> {
+                                                                element.forEach((el,index,a) => {
+                                                                    a[index] = parseFloat(el);
+                                                                });
+                                                                obj.arrGeoObj.push(element);
+                                                            });
+                                                            return obj;
+                                                        })
+                                                        .then(obj =>{
+                                                            typeOfTender=[];
+                                                            for(j=0;j< $(header).find('.tender-costomer-branch a').length;j++){
+                                                                typeOfTender.push(
+                                                                    $(header).find('.tender-costomer-branch a')[j].attribs.title
+                                                                );
                                                             }
-                                                        });
-                                                        data={};
-                                                        
-                                                    });
-                                                    id++;
-                                                })
-                                                .catch(error => {
-                                                    console.log('Ошибка: ', address);
-                                                    console.log('Err: ',error);
-                                }); 
-                                // searchCoords(address);
-                                
+
+                                                            obj.arrGeoObj.forEach((el,index,arr) =>{
+
+                                                                data = {
+                                                                    id: id,
+                                                                    name,
+                                                                    price,
+                                                                    coords: {
+                                                                        type: "Point",
+                                                                        coordinates: el
+                                                                    },
+                                                                    address: obj.addressArr[index],
+                                                                    dateStart,
+                                                                    dateEnd,
+                                                                    link : "http://rostender.info"+ link,
+                                                                    typeOfTender
+                                                                };
+
+                                                                collection.insertOne(data, function(err){
+                                                                    if(err){ 
+                                                                        return console.log(err);
+                                                                    }
+                                                                });
+                                                                data={};
+                                                                
+                                                            });
+                                                            id++;
+                                                        })
+                                                        .catch(error => {
+                                                            console.log('Ошибка: ', address);
+                                                            console.log('Err: ',error);
+                                        }); 
+                                        // searchCoords(address);
+                                }
+
                             });
-                            
-                            // console.log(data);
                         };
 
                         getData(response.data);
@@ -149,6 +154,7 @@ mongoClient.connect(function(err, client){
                 arr.splice(i,1,arrNameCity);
             }
         });
+      
         // console.log(addressArr);
 
         await URL(addressArr)//.then(c => {coords.push(c)});
@@ -163,30 +169,30 @@ mongoClient.connect(function(err, client){
                 let coordArr = res.response.GeoObjectCollection.featureMember[0].GeoObject.Point.pos.split(' ');
                 // console.log(coordArr)
                 // console.log(addressArr[i])
-                c[0] = coordArr[1];
-                c[1] = coordArr[0];
+                // c[0] = coordArr[1];
+                // c[1] = coordArr[0];
                 // console.log('coord: ',coord)
                 
                 // coords.splice(0,0,coord);
                 // coords.push(coord)
                 // coords.push(c);
-                coords[i]= c;
-                c=[]
+                coords[i]= coordArr//c;
+                coordArr=[];
             }
             // return c;
         }
         
-        console.log({
-            coords,
-            addressArr
-        })
+        // console.log({
+        //     coords,
+        //     addressArr
+        // })
         
         return {
             coords,
             addressArr
         };
-    }
-
+      }
+    // client.close()
     countPage();
 });
 
