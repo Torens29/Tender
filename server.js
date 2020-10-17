@@ -57,7 +57,7 @@ mongoClient.connect(function(err, client){
                                 const dateEnd = new Date(date[1][2],date[1][1],date[1][0]);
                                 d = new Date()
 
-                                console.log(d,' < ',dateEnd, d < dateEnd);
+                                // console.log(d,' < ',dateEnd, d < dateEnd);
                                 
                                 if(d < dateEnd){
 
@@ -83,8 +83,11 @@ mongoClient.connect(function(err, client){
                                                         .then(obj =>{
                                                             typeOfTender=[];
                                                             for(j=0;j< $(header).find('.tender-costomer-branch a').length;j++){
+
+                                                                console.log($(header).find('.tender-costomer-branch a')[j].children[0].data.trim())
+                                                                
                                                                 typeOfTender.push(
-                                                                    $(header).find('.tender-costomer-branch a')[j].attribs.title
+                                                                    $(header).find('.tender-costomer-branch a')[j].children[0].data.trim()
                                                                 );
                                                             }
 
