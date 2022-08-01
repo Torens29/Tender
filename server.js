@@ -31,16 +31,14 @@ mongoClient.connect(function(err, client){
             });
                         
         });
-
         // let result = await promise; 
-
         f2(await promise)//.then(() => {client.close()});
-        
     }
         
     async function f2(p){ 
         console.log("f2 "+ p);
             // let coords = await searchCoords(address);
+            // с какой по какую страницу парсить
             for( page = 1; page < 2; page++){
                 console.log(page);
                 await axios.get(url + page)
@@ -49,23 +47,24 @@ mongoClient.connect(function(err, client){
                             
                             const $ = cheerio.load(html);
                             $('.tender-row').each((i, header) => {
-                                
-                                let dateEndWithText = ($(header).find('.tender-date-end').text().trim()).split(' ');
-                                const date= [($(header).find('span.tender-date-info').text().trim()).split('.'), dateEndWithText[2].split('.')];
 
+                                let dateEndWithText = ($(header).find('.tender-date-end').text().trim()).split(' ')[6];
                                 
-                                const dateEnd = new Date(date[1][2],date[1][1],date[1][0]);
-                                d = new Date()
-
-                                // console.log(d,' < ',dateEnd, d < dateEnd);
+                                const date =  dateEndWithText.split('.'); // [($(header).find('span.tender-date-info').text().trim()).split('.'), dateEndWithText];
+                                // console.log(date);
                                 
-                                if(d < dateEnd){
+                                const dateEnd = new Date(date[2],date[1]-1,date[0]);//(date[1][2],date[1][1],date[1][0]);
+                                dateParser =  new Date();//Date.now();
 
-                                        const dateStart = new Date(date[0][2],date[0][1],date[0][0]);
+                                console.log(dateEnd, "-", dateParser , (dateParser < dateEnd)  );
+                                
+                                if( dateParser< dateEnd){ // если время еще не вышло, то...
+
+                                        // const dateStart = new Date(date[0][2],date[0][1],date[0][0]);
                                         const name = $(header).find("a.description").attr('title');
+                                        console.log(name);
                                         const price =  $(header).find(".starting-price").text().trim();
                                         const address = $(header).find('div.tender-address div').text().trim();
-                                    
                                         const link = $(header).find("a.description").attr('href');
 
                                         searchCoords(address)
@@ -92,7 +91,6 @@ mongoClient.connect(function(err, client){
                                                             }
 
                                                             obj.arrGeoObj.forEach((el,index,arr) =>{
-
                                                                 data = {
                                                                     id: id,
                                                                     name,
@@ -102,7 +100,7 @@ mongoClient.connect(function(err, client){
                                                                         coordinates: el
                                                                     },
                                                                     address: obj.addressArr[index],
-                                                                    dateStart,
+                                                                    // dateStart,
                                                                     dateEnd,
                                                                     link : "http://rostender.info"+ link,
                                                                     typeOfTender
@@ -114,7 +112,6 @@ mongoClient.connect(function(err, client){
                                                                     }
                                                                 });
                                                                 data={};
-                                                                
                                                             });
                                                             id++;
                                                         })
@@ -124,15 +121,11 @@ mongoClient.connect(function(err, client){
                                         }); 
                                         // searchCoords(address);
                                 }
-
                             });
                         };
-
                         getData(response.data);
                         return 'end';
-                        
                     })
-                   
                     .catch(error => {
                         console.log(error);
                     });
